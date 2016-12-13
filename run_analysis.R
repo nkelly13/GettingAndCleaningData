@@ -1,5 +1,5 @@
 # Define lists to contain column names for the features and the activities
-columnNames <- readLines("UCI HAR Dataset/features.txt")
+columnNames <- (read.csv("UCI HAR Dataset/features.txt", sep="", header = FALSE))$V2
 activityNames <- c("activity")
 
 
@@ -19,10 +19,18 @@ trainExtract <- cbind(X_train[extractIndices],y_train)
 
 allExtract <- rbind(testExtract,trainExtract)
 # Check for NA's
-max(sapply(testExtract,function(x){sum(is.na(x))}))
+# max(sapply(testExtract,function(x){sum(is.na(x))}))
 # returns 0
 
+# Load activity descriptions from the source
 activityDescriptions <- read.table("UCI HAR Dataset/activity_labels.txt", sep = "", header = FALSE, col.names = c("numericActivity","descriptiveActivity"))
-activityDescriptions
 
-head(allExtract)
+
+tidyDataset <- merge(allExtract,activityDescriptions,by.x = "activity", by.y = "numericActivity" )
+write.csv(tidyDataset,"tidyAccelerometerData.csv",row.names = FALSE)
+
+library(data.table)
+
+tidyDataTable <- data.table(tidyDataset)
+write.csv(tidyDataTable[,lapply(.SD,mean,na.rm=TRUE),by=descriptiveActivity],file = "tidySummaryData.csv",row.names = FALSE)
+
